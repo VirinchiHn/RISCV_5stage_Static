@@ -29,15 +29,14 @@ module decode_cycle(clk, rst, InstrD, PCD, PCPlus4D, RegWriteW, RDW, ResultW, Re
     reg RegWriteD_r,ALUSrcD_r,MemWriteD_r,BranchD_r,JumpD_r,JalrD_r;
     reg [1:0] ResultSrcD_r;
     reg [2:0] ALUControlD_r;
-    // ADDED: pipeline funct3 into execute stage for beq/bne/blt/bge/bltu/bgeu
+    
+    //pipeline funct3 into execute stage for beq/bne/blt/bge/bltu/bgeu
     reg [2:0] funct3_D_r;
     reg [31:0] RD1_D_r, RD2_D_r, Imm_Ext_D_r;
     reg [4:0] RD_D_r, RS1_D_r, RS2_D_r;
     reg [31:0] PCD_r, PCPlus4D_r;
 
 
-    // Initiate the modules
-    // Control Unit
     Control_Unit_Top control (
                             .Op(InstrD[6:0]),
                             .RegWrite(RegWriteD),
@@ -52,7 +51,7 @@ module decode_cycle(clk, rst, InstrD, PCD, PCPlus4D, RegWriteW, RDW, ResultW, Re
                             .funct7(InstrD[31:25]),
                             .ALUControl(ALUControlD)
                             );
-    // Register File
+    
     Register_File rf (
                         .clk(clk),
                         .rst(rst),
@@ -65,7 +64,6 @@ module decode_cycle(clk, rst, InstrD, PCD, PCPlus4D, RegWriteW, RDW, ResultW, Re
                         .RD2(RD2_D)
                         );
 
-    // Sign Extension
     Sign_Extend extension (
                         .In(InstrD[31:0]),
                         .Imm_Ext(Imm_Ext_D),
@@ -78,16 +76,13 @@ module decode_cycle(clk, rst, InstrD, PCD, PCPlus4D, RegWriteW, RDW, ResultW, Re
             RegWriteD_r <= 1'b0;
             ALUSrcD_r <= 1'b0;
             MemWriteD_r <= 1'b0;
-
-            // CHANGED: 2-bit reset
             ResultSrcD_r <= 2'b00;
 
             BranchD_r <= 1'b0;
 
-            // ADDED: reset jump signals
             JumpD_r <= 1'b0;
             JalrD_r <= 1'b0;
-            // ADDED
+            
             funct3_D_r <= 3'b000;
 
             ALUControlD_r <= 3'b000;
@@ -107,7 +102,7 @@ module decode_cycle(clk, rst, InstrD, PCD, PCPlus4D, RegWriteW, RDW, ResultW, Re
             ResultSrcD_r <= ResultSrcD;
             BranchD_r <= BranchD;
 
-            // ADDED: pipeline jump signals into Execute stage
+            //pipeline jump signals into Execute stage
             JumpD_r <= JumpD;
             JalrD_r <= JalrD;
             // ADDED
@@ -132,10 +127,10 @@ module decode_cycle(clk, rst, InstrD, PCD, PCPlus4D, RegWriteW, RDW, ResultW, Re
     assign ResultSrcE = ResultSrcD_r;
     assign BranchE = BranchD_r;
 
-    // ADDED: send Jump/Jalr to Execute stage
+    // send Jump/Jalr to Execute stage
     assign JumpE = JumpD_r;
     assign JalrE = JalrD_r;
-    // ADDED
+    
     assign funct3_E = funct3_D_r;
     assign ALUControlE = ALUControlD_r;
     assign RD1_E = RD1_D_r;
