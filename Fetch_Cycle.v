@@ -22,8 +22,6 @@ module fetch_cycle(clk, rst, PCSrcE, JalrE, PCTargetE, StallD, StallF, FlushD, I
     reg [31:0] PCF_reg, PCPlus4F_reg;
 
 
-    // Initiation of Modules
-    // Declare PC Mux
     Mux PC_MUX (.a(PCPlus4F),
                 .b(PCTargetE),
                 .s(PCSrcE),
@@ -43,21 +41,19 @@ module fetch_cycle(clk, rst, PCSrcE, JalrE, PCTargetE, StallD, StallF, FlushD, I
                 .PC_Next(PC_F)
                 );
 
-    // Declare Instruction Memory
     Instruction_Memory IMEM (
                 .rst(rst),
                 .A(PCF),
                 .RD(InstrF)
                 );
-
-    // Declare PC adder
+    
     PC_Adder PC_adder (
                 .a(PCF),
                 .b(32'h00000004),
                 .c(PCPlus4F)
                 );
 
-    // Fetch Cycle Register Logic
+
     always @(posedge clk or negedge rst) begin
         if(rst == 1'b0) begin
             InstrF_reg <= 32'h00000000;
@@ -82,7 +78,6 @@ module fetch_cycle(clk, rst, PCSrcE, JalrE, PCTargetE, StallD, StallF, FlushD, I
     end
 
 
-    // Assigning Registers Value to the Output port
     assign  InstrD = (rst == 1'b0) ? 32'h00000000 : InstrF_reg;
     assign  PCD = (rst == 1'b0) ? 32'h00000000 : PCF_reg;
     assign  PCPlus4D = (rst == 1'b0) ? 32'h00000000 : PCPlus4F_reg;
