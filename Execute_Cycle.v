@@ -6,7 +6,7 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
 
     input [1:0] ResultSrcE;
 
-    // ADDED: branch funct3 coming from decode stage
+    // branch funct3 coming from decode stage
     input [2:0] funct3_E;
 
     input [2:0] ALUControlE;
@@ -28,10 +28,10 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
     wire [31:0] ResultE;
     wire [31:0] PCBranchTargetE;
 
-    // ADDED: extra ALU flags for branch decisions
+    //ALU flags for branch decisions
     wire ZeroE, NegativeE, CarryE, OverFlowE;
 
-    // ADDED: final branch condition result
+    //final branch condition result
     wire BranchTakenE;
 
     // Declaration of Register
@@ -41,7 +41,7 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
     reg [4:0] RD_E_r;
     reg [31:0] PCPlus4E_r, RD2_E_r, ResultE_r;
 
-    // 3 by 1 Mux for Source A
+    // 3 by 1 Mux for Source A Forwarding
     Mux_3_by_1 srca_mux (
                         .a(RD1_E),
                         .b(ResultW),
@@ -50,7 +50,7 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
                         .d(Src_A)
                         );
 
-    // 3 by 1 Mux for Source B
+    // 3 by 1 Mux for Source B Forwarding
     Mux_3_by_1 srcb_mux (
                         .a(RD2_E),
                         .b(ResultW),
@@ -59,7 +59,6 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
                         .d(Src_B_interim)
                         );
 
-    // ALU Src Mux
     Mux alu_src_mux (
             .a(Src_B_interim),
             .b(Imm_Ext_E),
@@ -67,14 +66,11 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
             .c(Src_B)
             );
 
-    // ALU Unit
     ALU alu (
             .A(Src_A),
             .B(Src_B),
             .Result(ResultE),
             .ALUControl(ALUControlE),
-
-            // ADDED: connect flags instead of leaving them open
             .OverFlow(OverFlowE),
             .Carry(CarryE),
             .Zero(ZeroE),
@@ -88,12 +84,11 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
             .c(PCBranchTargetE)
             );
 
-    // JAL/JALR/Branch PC target selection
     // Branch and JAL use PC + Imm
     // JALR uses rs1 + Imm, which is ALU ResultE
     assign PCTargetE = (JalrE == 1'b1) ? ResultE : PCBranchTargetE;
 
-    // ADDED: branch condition logic using funct3
+    //branch condition logic using funct3
     assign BranchTakenE =
             (funct3_E == 3'b000) ? ZeroE :                    // beq
             (funct3_E == 3'b001) ? ~ZeroE :                   // bne
@@ -103,7 +98,6 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
             (funct3_E == 3'b111) ? CarryE :                   // bgeu
                                    1'b0;
 
-    // Register Logic
     always @(posedge clk or negedge rst) begin
         if(rst == 1'b0) begin
             RegWriteE_r <= 1'b0; 
@@ -128,7 +122,7 @@ module execute_cycle(clk, rst, RegWriteE, ALUSrcE, MemWriteE, ResultSrcE, Branch
 
     // Output Assignments
 
-    // CHANGED: now supports beq, bne, blt, bge, bltu, bgeu, jal, jalr
+    //supports beq, bne, blt, bge, bltu, bgeu, jal, jalr
     assign PCSrcE = (BranchE & BranchTakenE) | JumpE;
 
     assign RegWriteM = RegWriteE_r;
